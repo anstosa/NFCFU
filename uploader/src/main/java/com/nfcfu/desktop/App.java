@@ -1,21 +1,13 @@
 package com.nfcfu.desktop;
 
 import java.util.concurrent.LinkedBlockingQueue;
-import com.nfcfu.desktop.NFCListener;
 
-
-/**
- * Hello world!
- *
- */
-public class App 
-{
+public class App {
     static LinkedBlockingQueue<String> ips = new LinkedBlockingQueue<String>();
     static volatile boolean keepRunning = true;
     static Thread nfc, files;
 
-    public static void main( String[] args )
-    {
+    public static void main(String[] args) {
         NFCListener t1 = new NFCListener();
         DragAndDrop t2 = new DragAndDrop();
         files = new Thread(t1);

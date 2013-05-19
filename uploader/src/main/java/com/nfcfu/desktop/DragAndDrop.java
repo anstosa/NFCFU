@@ -1,9 +1,6 @@
 package com.nfcfu.desktop;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
+import com.nfcfu.desktop.com.nfcfu.desktop.SendFile;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import javax.imageio.ImageIO;
@@ -15,36 +12,41 @@ import java.awt.dnd.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TooManyListenersException;
 
-public class DragAndDrop {
+public class DragAndDrop implements Runnable {
+    private String ipAddress = null;
 
-    public static void main(String[] args) {
-        new DragAndDrop();
-    }
+    @Override
+    public void run() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException e) {
+        } catch (InstantiationException e) {
+        } catch (IllegalAccessException e) {
+        } catch (UnsupportedLookAndFeelException ex) {
+        }
 
-    public DragAndDrop() {
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                } catch (ClassNotFoundException e) {
-                } catch (InstantiationException e) {
-                } catch (IllegalAccessException e) {
-                } catch (UnsupportedLookAndFeelException ex) {
+        JFrame frame = new JFrame("Upload Files");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+        frame.add(new DropPane());
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+
+        while (App.keepRunning) {
+            try {
+                ipAddress = App.ips.take();
+                if (ipAddress != null) {
+                    break;
                 }
-
-                JFrame frame = new JFrame("Testing");
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.setLayout(new BorderLayout());
-                frame.add(new DropPane());
-                frame.pack();
-                frame.setLocationRelativeTo(null);
-                frame.setVisible(true);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        });
+        }
     }
 
     public class DropPane extends JPanel {
@@ -111,9 +113,6 @@ public class DragAndDrop {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (dragOver) {
-                // TODO: Give visual feedback that it will be uploaded
-
-
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setColor(new Color(0, 255, 0, 64));
                 g2d.fill(new Rectangle(getWidth(), getHeight()));
@@ -136,32 +135,32 @@ public class DragAndDrop {
 
         protected void importFiles(final List<File> files) {
             final DefaultHttpClient httpclient = new DefaultHttpClient();
+            List<Thread> runners = new ArrayList<Thread>();
 
-            Runnable run = new Runnable() {
-                @Override
-                public void run() {
-                    for (File file : files) {
-                        HttpPost method = new HttpPost("http://172.17.14.16:8080/");
-                        MultipartEntity entity = new MultipartEntity();
-                        entity.addPart("file", new FileBody(file));
-                        method.setEntity(entity);
-
-                        try {
-                            HttpResponse response = httpclient.execute(method);
-                            System.out.println(response.getStatusLine());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    message.setText("You dropped " + files.size() + " files");
+            while(ipAddress == null) {
+                try{
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-            };
-            SwingUtilities.invokeLater(run);
+            }
+
+            for (File file : files) {
+                Thread sendRunner = new Thread(new SendFile(file, httpclient, ipAddress));
+                runners.add(sendRunner);
+                sendRunner.start();
+            }
+
+            for (Thread runner : runners) {
+                try {
+                    runner.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         protected class DropTargetHandler implements DropTargetListener {
-
             protected void processDrag(DropTargetDragEvent dtde) {
                 if (dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                     dtde.acceptDrag(DnDConstants.ACTION_COPY);
@@ -196,7 +195,6 @@ public class DragAndDrop {
 
             @Override
             public void drop(DropTargetDropEvent dtde) {
-
                 SwingUtilities.invokeLater(new DragUpdate(false, null));
 
                 Transferable transferable = dtde.getTransferable();
@@ -219,7 +217,6 @@ public class DragAndDrop {
         }
 
         public class DragUpdate implements Runnable {
-
             private boolean dragOver;
             private Point dragPoint;
 
@@ -235,6 +232,5 @@ public class DragAndDrop {
                 DropPane.this.repaint();
             }
         }
-
     }
 }

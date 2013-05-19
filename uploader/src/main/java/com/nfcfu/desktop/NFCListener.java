@@ -18,7 +18,7 @@ import gnu.io.SerialPortEventListener;
 import java.util.Enumeration;
 
 
-public class NFCListener implements SerialPortEventListener {
+public class NFCListener implements SerialPortEventListener, Runnable {
     SerialPort serialPort;
     /** The port we're normally going to use. */
     private static final String PORT_NAMES[] = {
@@ -113,19 +113,13 @@ public class NFCListener implements SerialPortEventListener {
         // Ignore all the other eventTypes, but you should consider the other ones.
     }
 
-    public static void main(String[] args) throws Exception {
-        NFCListener main = new NFCListener();
-        main.initialize();
-        Thread t=new Thread() {
-            public void run() {
-                while (App.keepRunning) {
-                    try {
-                        Thread.sleep(1000000);
-                    } catch (InterruptedException ie) {}
-                }
-            }
-        };
-        t.start();
-        System.out.println("Started");
+    @Override
+    public void run() {
+        initialize();
+        while (App.keepRunning) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ie) {}
+        }
     }
 }
