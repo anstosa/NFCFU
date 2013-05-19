@@ -10,7 +10,6 @@ package com.nfcfu.desktop;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
@@ -32,8 +31,6 @@ public class NFCListener implements SerialPortEventListener, Runnable {
      * making the displayed results codepage independent
      */
     private BufferedReader input;
-    /** The output stream to the port */
-    private OutputStream output;
     /** Milliseconds to block while waiting for port open */
     private static final int TIME_OUT = 5000;
     /** Default bits per second for COM port. */
@@ -55,6 +52,7 @@ public class NFCListener implements SerialPortEventListener, Runnable {
         }
         if (portId == null) {
             System.out.println("Could not find COM port.");
+            App.nfcConnected = false;
             return;
         }
 
@@ -71,7 +69,6 @@ public class NFCListener implements SerialPortEventListener, Runnable {
 
             // open the streams
             input = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
-            output = serialPort.getOutputStream();
 
             // add event listeners
             serialPort.addEventListener(this);
@@ -116,10 +113,12 @@ public class NFCListener implements SerialPortEventListener, Runnable {
     @Override
     public void run() {
         initialize();
-        while (App.keepRunning) {
+        while (App.nfcConnected) {
             try {
                 Thread.sleep(1000);
-            } catch (InterruptedException ie) {}
+            } catch (InterruptedException ie) {
+                System.err.println(ie.toString());
+            }
         }
     }
 }

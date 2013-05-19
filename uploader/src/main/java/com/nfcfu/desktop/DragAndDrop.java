@@ -1,6 +1,7 @@
 package com.nfcfu.desktop;
 
 import com.nfcfu.desktop.com.nfcfu.desktop.SendFile;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import javax.imageio.ImageIO;
@@ -30,22 +31,28 @@ public class DragAndDrop implements Runnable {
         }
 
         JFrame frame = new JFrame("Upload Files");
+        DropPane dropZone = new DropPane();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
-        frame.add(new DropPane());
+        frame.add(dropZone);
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        while (App.keepRunning) {
+        while (App.nfcConnected) {
             try {
+                Thread.sleep(500);
                 ipAddress = App.ips.take();
                 if (ipAddress != null) {
+                    dropZone.setText("Drag files here or");
                     break;
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+        if (!App.nfcConnected) {
+            dropZone.setText("Please connect NFC reader.");
         }
     }
 
@@ -59,6 +66,7 @@ public class DragAndDrop implements Runnable {
         private BufferedImage target;
 
         private JLabel message;
+        private FileSelect browse;
 
         public DropPane() {
             try {
@@ -69,9 +77,17 @@ public class DragAndDrop implements Runnable {
             }
 
             setLayout(new GridBagLayout());
-            message = new JLabel();
+            message = new JLabel("Waiting for phone...");
             message.setFont(message.getFont().deriveFont(Font.BOLD, 24));
             add(message);
+            browse = new FileSelect();
+            browse.setVisible(false);
+            add(browse);
+        }
+
+        public void setText(String newMessage) {
+            message.setText(newMessage);
+            browse.setVisible(newMessage == "Drag files here or");
         }
 
         @Override
@@ -112,7 +128,9 @@ public class DragAndDrop implements Runnable {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
+            if (ipAddress == null) return;
             if (dragOver) {
+                setText("Drop to upload");
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setColor(new Color(0, 255, 0, 64));
                 g2d.fill(new Rectangle(getWidth(), getHeight()));
@@ -120,7 +138,10 @@ public class DragAndDrop implements Runnable {
                 g2d.drawImage(target, getWidth() / 2 - (target.getWidth() / 2), getHeight() / 2 - (target.getHeight() / 2), this);
 
                 g2d.dispose();
+            } else if (message.getText() == "Drop to upload"){
+                setText("Drag files here or");
             }
+
         }
 
         private BufferedImage resizeImage(BufferedImage originalImage, int height, int width) {
@@ -133,7 +154,9 @@ public class DragAndDrop implements Runnable {
             return resizedImage;
         }
 
-        protected void importFiles(final List<File> files) {
+        public void importFiles(final List<File> files) {
+            if (ipAddress == null) return;
+            else setText("Uploading...");
             final DefaultHttpClient httpclient = new DefaultHttpClient();
             List<Thread> runners = new ArrayList<Thread>();
 

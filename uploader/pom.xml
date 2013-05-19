@@ -47,7 +47,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.nfcfu.desktop.NFCListener</mainClass>
+                            <mainClass>com.nfcfu.desktop.App</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -62,7 +62,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.nfcfu.desktop.NFCListener</mainClass>
+                            <mainClass>com.nfcfu.desktop.App</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

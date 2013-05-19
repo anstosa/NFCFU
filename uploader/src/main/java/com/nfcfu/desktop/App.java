@@ -4,7 +4,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class App {
     static LinkedBlockingQueue<String> ips = new LinkedBlockingQueue<String>();
-    static volatile boolean keepRunning = true;
+    static volatile boolean nfcConnected = true;
     static Thread nfc, files;
 
     public static void main(String[] args) {
