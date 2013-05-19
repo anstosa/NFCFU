@@ -9,12 +9,12 @@ import android.nfc.FormatException;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import com.nfcfu.android.httpserver.HttpServer;
 
+import java.io.File;
 import java.io.IOException;
 
 public class MainActivity extends Activity {
@@ -33,8 +33,10 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
+
+        // Initialize the FileAccessor
+        FileAccessor.getInstance();
 
         // Find the required UI components
         Button btnWrite = (Button) findViewById(R.id.writeNfcButton);

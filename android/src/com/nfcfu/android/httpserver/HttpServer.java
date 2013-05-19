@@ -5,6 +5,8 @@
 
 package com.nfcfu.android.httpserver;
 
+import com.nfcfu.android.FileAccessor;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
@@ -17,6 +19,8 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.*;
 import org.apache.http.util.EntityUtils;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ServerSocket;
@@ -39,6 +43,7 @@ public class HttpServer {
     }
 
     static class HttpFileHandler implements HttpRequestHandler {
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -56,10 +61,17 @@ public class HttpServer {
 
                 StringEntity body = null;
                 String contentType = getContentType(request);
-                if (contentType != null && contentType.equals("multipart/form-data")) {
-                    body = new StringEntity("Received a multipart form data");
+                if (contentType != null && contentType.equals("multipart/form-data") && request instanceof HttpEntityEnclosingRequest) {
+                    HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+                    byte[] entityContent = EntityUtils.toByteArray(entity);
 
+                    MultipartParser parser = new MultipartParser(entityContent);
 
+                    File writeTo = new File(FileAccessor.getRootFile(), parser.getFileName());
+                    FileOutputStream output = new FileOutputStream(writeTo);
+                    IOUtils.write(parser.getFileBytes(), output);
+
+                    body = new StringEntity(new String(entityContent));
                 } else {
                     body = new StringEntity("Received a POST request!");
                 }
@@ -68,12 +80,6 @@ public class HttpServer {
                 response.setEntity(body);
             } else {
                 throw new MethodNotSupportedException(method + " method not supported");
-            }
-
-            if (request instanceof HttpEntityEnclosingRequest) {
-                HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-                byte[] entityContent = EntityUtils.toByteArray(entity);
-                System.out.println("Incoming entity content (bytes): " + entityContent.length);
             }
         }
 
@@ -132,13 +138,11 @@ public class HttpServer {
         }
 
         public void run() {
-            System.out.println("Listening on port " + this.serversocket.getLocalPort());
             while (!Thread.interrupted()) {
                 try {
                     // Set up HTTP connection
                     Socket socket = this.serversocket.accept();
                     DefaultHttpServerConnection conn = new DefaultHttpServerConnection();
-                    System.out.println("Incoming connection from " + socket.getInetAddress());
                     conn.bind(socket, this.params);
 
                     // Start worker thread
@@ -170,7 +174,6 @@ public class HttpServer {
         }
 
         public void run() {
-            System.out.println("New connection thread");
             HttpContext context = new BasicHttpContext(null);
             try {
                 while (!Thread.interrupted() && this.conn.isOpen()) {

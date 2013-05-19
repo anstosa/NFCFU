@@ -65,8 +65,6 @@ public class NfcHelper {
     }
 
     private static String getIpAddr(WifiManager wifiManager) {
-        Log.v(NfcHelper.class.getSimpleName(), "Getting IP Address");
-
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         int ip = wifiInfo.getIpAddress();
 
