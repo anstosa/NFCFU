@@ -13,6 +13,7 @@
     <string name="writeSuccess">Tag Written!</string>
     <string name="writeFailure">Tag could not be written. Is it read-only?</string>
     <string name="tagNotFound">Tag could not be found. Please move it and try again.</string>
+    <string name="notOnWifi">Must be connected to a Wifi network.</string>
 
     <string name="writeTagButton">Program Tag</string>
 

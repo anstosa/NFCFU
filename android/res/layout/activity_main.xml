@@ -12,21 +12,29 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/stepOne"
-            android:id="@+id/stepOne_textView" android:textStyle="bold"/>
+            android:id="@+id/step_textView" android:textStyle="bold"/>
 
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/stepOneDesc"
-            android:id="@+id/stepOneDesc_textView"
-            android:layout_below="@+id/stepOne_textView" android:layout_alignLeft="@+id/stepOne_textView"/>
+            android:id="@+id/stepDesc_textView"
+            android:layout_below="@+id/step_textView" android:layout_alignLeft="@+id/step_textView"/>
 
     <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/writeTagButton"
             android:id="@+id/writeNfcButton"
-            android:layout_marginTop="19dp" android:layout_below="@+id/stepOneDesc_textView"
-            android:layout_centerHorizontal="true"/>
+            android:layout_marginTop="11dp"
+            android:layout_below="@+id/stepDesc_textView" android:layout_centerHorizontal="true"/>
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/error_textView"
+            android:layout_marginTop="13dp"
+            android:layout_below="@+id/writeNfcButton" android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>

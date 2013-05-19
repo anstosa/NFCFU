@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import java.io.IOException;
 
@@ -22,33 +23,43 @@ public class MainActivity extends Activity {
 
     Tag tagToWrite;
 
+    TextView step;
+    TextView stepDesc;
+    TextView error;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.v("NFCFU", "Creating activity");
-
         setContentView(R.layout.activity_main);
+
+        // Find the required UI components
         Button btnWrite = (Button) findViewById(R.id.writeNfcButton);
+        step = (TextView) findViewById(R.id.step_textView);
+        stepDesc = (TextView) findViewById(R.id.stepDesc_textView);
+        error = (TextView) findViewById(R.id.error_textView);
 
         btnWrite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Clear the error before attempting anything
+                error.setText("");
+
                 try {
                     if (tagToWrite == null) {
-                        Log.e("NFCFU", "Error Detected");
+                        error.setText(R.string.tagNotFound);
                     } else {
                         NfcHelper.writeIpAddress(tagToWrite, (WifiManager) getSystemService(WIFI_SERVICE));
-                        Log.v("NFCFU", "NFC Tag Written");
+                        step.setText(R.string.stepTwo);
+                        stepDesc.setText(R.string.stepTwoDesc);
+                        v.setVisibility(View.GONE);
                     }
                 } catch (IllegalStateException e) {
-
+                    error.setText(R.string.notOnWifi);
                 } catch (IOException e) {
-                    Log.e("NFCFU", "Error Writing");
-                    e.printStackTrace();
+                    error.setText(R.string.writeFailure);
                 } catch (FormatException e) {
-                    Log.e("NFCFU", "Error Writing");
-                    e.printStackTrace();
+                    error.setText(R.string.writeFailure);
                 }
             }
         });
