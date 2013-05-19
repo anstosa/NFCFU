@@ -68,6 +68,7 @@ public class DragAndDrop implements Runnable {
         private JLabel message;
         private JLabel statusMessage;
         private FileSelect browse;
+        GridBagConstraints c;
 
         public DropPane() {
             try {
@@ -78,16 +79,22 @@ public class DragAndDrop implements Runnable {
             }
 
             setLayout(new GridBagLayout());
-            message = new JLabel("Waiting for phone...");
-            message.setFont(message.getFont().deriveFont(Font.BOLD, 24));
-            add(message);
             statusMessage = new JLabel();
             statusMessage.setFont(statusMessage.getFont().deriveFont(Font.PLAIN, 14));
             statusMessage.setVisible(false);
-            add(statusMessage);
+            c = new GridBagConstraints();
+            c.anchor = GridBagConstraints.PAGE_START;
+            c.gridwidth = 2;
+            add(statusMessage, c);
+            message = new JLabel("Waiting for phone...");
+            message.setFont(message.getFont().deriveFont(Font.BOLD, 24));
+            c = new GridBagConstraints();
+            c.anchor = GridBagConstraints.CENTER;
+            c.gridy = 1;
+            add(message, c);
             browse = new FileSelect(this);
             browse.setVisible(false);
-            add(browse);
+            add(browse, c);
         }
 
         public void setMessage(String newMessage) {

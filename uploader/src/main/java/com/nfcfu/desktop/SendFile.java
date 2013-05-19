@@ -30,7 +30,7 @@ public class SendFile implements Runnable {
 
         try {
             HttpResponse response = client.execute(method);
-            DragAndDrop.statuses.offer("Success!");
+            DragAndDrop.statuses.offer(file.getName() + " uploaded successfully!");
             System.out.println(response.getStatusLine());
         } catch (HttpHostConnectException e) {
             DragAndDrop.statuses.offer("Cannot find phone...");
