@@ -14,7 +14,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import com.nfcfu.android.httpserver.HttpServer;
 
-import java.io.File;
 import java.io.IOException;
 
 public class MainActivity extends Activity {
@@ -29,6 +28,7 @@ public class MainActivity extends Activity {
     private TextView step;
     private TextView stepDesc;
     private TextView error;
+    private TextView nextSteps;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
         step = (TextView) findViewById(R.id.step_textView);
         stepDesc = (TextView) findViewById(R.id.stepDesc_textView);
         error = (TextView) findViewById(R.id.error_textView);
+        nextSteps = (TextView) findViewById(R.id.nextSteps_textView);
 
         btnWrite.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,9 +55,10 @@ public class MainActivity extends Activity {
                         NfcHelper.writeIpAddress(tagToWrite, (WifiManager) getSystemService(WIFI_SERVICE));
                         step.setText(R.string.stepTwo);
                         stepDesc.setText(R.string.stepTwoDesc);
-                        v.setVisibility(View.GONE);
+                        v.setVisibility(View.INVISIBLE);
+                        nextSteps.setVisibility(View.VISIBLE);
 
-                        if(webServer == null) {
+                        if (webServer == null) {
                             webServer = new HttpServer();
                         }
                     }

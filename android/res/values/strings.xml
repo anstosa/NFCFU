@@ -10,6 +10,8 @@
     <string name="stepTwo">Step Two:</string>
     <string name="stepTwoDesc">Place tag on NFC reader connected to computer.</string>
 
+    <string name="nextSteps">Your files will be stored in your Downloads directory</string>
+
     <string name="writeSuccess">Tag Written!</string>
     <string name="writeFailure">Tag could not be written. Is it read-only?</string>
     <string name="tagNotFound">Tag could not be found. Please move it and try again.</string>
