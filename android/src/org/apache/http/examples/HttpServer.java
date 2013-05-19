@@ -32,9 +32,7 @@
 package org.apache.http.examples;
 
 import org.apache.http.*;
-import org.apache.http.entity.ContentProducer;
-import org.apache.http.entity.EntityTemplate;
-import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.impl.DefaultHttpServerConnection;
@@ -45,10 +43,10 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.*;
 import org.apache.http.util.EntityUtils;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URLDecoder;
 import java.util.Locale;
 
 /**
@@ -63,7 +61,7 @@ public class HttpServer {
     Thread requestListener;
 
     public HttpServer(String directory) throws IOException {
-        Thread t = new RequestListenerThread(8080, directory);
+        Thread t = new RequestListenerThread(8080);
         t.setDaemon(false);
         t.start();
     }
@@ -75,80 +73,30 @@ public class HttpServer {
     }
 
     static class HttpFileHandler implements HttpRequestHandler {
-
-        private final String docRoot;
-
-        public HttpFileHandler(final String docRoot) {
-            super();
-            this.docRoot = docRoot;
-        }
-
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
 
             String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
-            if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
+            if (method.equals("GET")) {
+                response.setStatusCode(HttpStatus.SC_OK);
+                StringEntity body = new StringEntity("This web page is intended only for POST request containing multi-part file uploads");
+                response.setEntity(body);
+            } else if (method.equals("POST")) {
+                response.setStatusCode(HttpStatus.SC_OK);
+                StringEntity body = new StringEntity("Received a POST request!");
+                response.setEntity(body);
+            } else {
                 throw new MethodNotSupportedException(method + " method not supported");
             }
-            String target = request.getRequestLine().getUri();
 
             if (request instanceof HttpEntityEnclosingRequest) {
                 HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
                 byte[] entityContent = EntityUtils.toByteArray(entity);
                 System.out.println("Incoming entity content (bytes): " + entityContent.length);
             }
-
-            final File file = new File(this.docRoot, URLDecoder.decode(target));
-            if (!file.exists()) {
-
-                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
-                EntityTemplate body = new EntityTemplate(new ContentProducer() {
-
-                    public void writeTo(final OutputStream outstream) throws IOException {
-                        OutputStreamWriter writer = new OutputStreamWriter(outstream, "UTF-8");
-                        writer.write("<html><body><h1>");
-                        writer.write("File ");
-                        writer.write(file.getPath());
-                        writer.write(" not found");
-                        writer.write("</h1></body></html>");
-                        writer.flush();
-                    }
-
-                });
-                body.setContentType("text/html; charset=UTF-8");
-                response.setEntity(body);
-                System.out.println("File " + file.getPath() + " not found");
-
-            } else if (!file.canRead() || file.isDirectory()) {
-
-                response.setStatusCode(HttpStatus.SC_FORBIDDEN);
-                EntityTemplate body = new EntityTemplate(new ContentProducer() {
-
-                    public void writeTo(final OutputStream outstream) throws IOException {
-                        OutputStreamWriter writer = new OutputStreamWriter(outstream, "UTF-8");
-                        writer.write("<html><body><h1>");
-                        writer.write("Access denied");
-                        writer.write("</h1></body></html>");
-                        writer.flush();
-                    }
-
-                });
-                body.setContentType("text/html; charset=UTF-8");
-                response.setEntity(body);
-                System.out.println("Cannot read file " + file.getPath());
-
-            } else {
-
-                response.setStatusCode(HttpStatus.SC_OK);
-                FileEntity body = new FileEntity(file, "text/html");
-                response.setEntity(body);
-                System.out.println("Serving file " + file.getPath());
-
-            }
         }
-
     }
 
     static class RequestListenerThread extends Thread {
@@ -157,7 +105,7 @@ public class HttpServer {
         private final HttpParams params;
         private final HttpService httpService;
 
-        public RequestListenerThread(int port, final String docroot) throws IOException {
+        public RequestListenerThread(int port) throws IOException {
             this.serversocket = new ServerSocket(port);
             this.params = new BasicHttpParams();
             this.params
@@ -176,7 +124,7 @@ public class HttpServer {
 
             // Set up request handlers
             HttpRequestHandlerRegistry reqistry = new HttpRequestHandlerRegistry();
-            reqistry.register("*", new HttpFileHandler(docroot));
+            reqistry.register("*", new HttpFileHandler());
 
             // Set up the HTTP service
             this.httpService = new HttpService(
@@ -245,7 +193,5 @@ public class HttpServer {
                 }
             }
         }
-
     }
-
 }
