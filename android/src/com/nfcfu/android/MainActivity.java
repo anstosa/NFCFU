@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import org.apache.http.examples.HttpServer;
 
 import java.io.IOException;
 
@@ -22,6 +23,8 @@ public class MainActivity extends Activity {
     IntentFilter writeTagFilters[];
 
     Tag tagToWrite;
+
+    HttpServer webServer;
 
     TextView step;
     TextView stepDesc;
@@ -53,6 +56,10 @@ public class MainActivity extends Activity {
                         step.setText(R.string.stepTwo);
                         stepDesc.setText(R.string.stepTwoDesc);
                         v.setVisibility(View.GONE);
+
+                        if(webServer == null) {
+                            webServer = new HttpServer(".");
+                        }
                     }
                 } catch (IllegalStateException e) {
                     error.setText(R.string.notOnWifi);
@@ -80,7 +87,6 @@ public class MainActivity extends Activity {
     protected void onNewIntent(Intent intent) {
         if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())) {
             tagToWrite = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            Log.v("NFCFU", "Detected new Intent");
         }
     }
 
@@ -94,5 +100,11 @@ public class MainActivity extends Activity {
     public void onResume() {
         super.onResume();
         adapter.enableForegroundDispatch(this, pendingIntent, writeTagFilters, null);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        webServer.stop();
     }
 }
