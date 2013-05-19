@@ -29,6 +29,15 @@
             android:layout_marginTop="11dp"
             android:layout_below="@+id/stepDesc_textView" android:layout_centerHorizontal="true"/>
 
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/finishedUploadingButton"
+            android:id="@+id/stopServerButton"
+            android:layout_marginTop="11dp"
+            android:layout_below="@+id/stepDesc_textView" android:layout_centerHorizontal="true"/>
+
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

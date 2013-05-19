@@ -5,6 +5,7 @@
 
 package com.nfcfu.android.httpserver;
 
+import android.util.Log;
 import com.nfcfu.android.FileAccessor;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
@@ -25,21 +26,25 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HttpServer {
-    private Thread requestListener;
+    private RequestListener listener;
 
     public HttpServer() throws IOException {
-        Thread t = new RequestListenerThread(8080);
-        t.setDaemon(false);
+        Log.v(this.getClass().getSimpleName(), "Creating new HTTP Server");
+
+        listener = new RequestListener(8080);
+        Thread t = new Thread(listener);
         t.start();
     }
 
     public void stop() {
-        if (requestListener != null) {
-            requestListener.interrupt();
-        }
+        Log.v(this.getClass().getSimpleName(), "Stopping HTTP Server");
+        listener.stop();
     }
 
     static class HttpFileHandler implements HttpRequestHandler {
@@ -101,13 +106,15 @@ public class HttpServer {
         }
     }
 
-    static class RequestListenerThread extends Thread {
-
+    static class RequestListener implements Runnable {
         private final ServerSocket serversocket;
         private final HttpParams params;
         private final HttpService httpService;
 
-        public RequestListenerThread(int port) throws IOException {
+        private AtomicBoolean running;
+        private List<Worker> workers;
+
+        public RequestListener(int port) throws IOException {
             this.serversocket = new ServerSocket(port);
             this.params = new BasicHttpParams();
             this.params
@@ -135,10 +142,15 @@ public class HttpServer {
                     new DefaultHttpResponseFactory());
             this.httpService.setParams(this.params);
             this.httpService.setHandlerResolver(reqistry);
+
+            workers = new ArrayList<Worker>();
         }
 
+        @Override
         public void run() {
-            while (!Thread.interrupted()) {
+            running = new AtomicBoolean(true);
+
+            while (running.get()) {
                 try {
                     // Set up HTTP connection
                     Socket socket = this.serversocket.accept();
@@ -146,51 +158,78 @@ public class HttpServer {
                     conn.bind(socket, this.params);
 
                     // Start worker thread
-                    Thread t = new WorkerThread(this.httpService, conn);
+                    Worker w = new Worker(this.httpService, conn);
+                    Thread t = new Thread(w);
                     t.setDaemon(true);
                     t.start();
+
+                    workers.add(w);
                 } catch (InterruptedIOException ex) {
                     break;
                 } catch (IOException e) {
-                    System.err.println("I/O error initialising connection thread: "
-                            + e.getMessage());
+                    Log.e(this.getClass().getSimpleName(), "I/O error initialising connection thread: " + e.getMessage());
                     break;
                 }
             }
         }
+
+        public void stop() {
+            running.set(false);
+
+            for(Worker worker : workers) {
+                if (worker != null) {
+                    worker.stop();
+                }
+            }
+
+            try {
+                this.serversocket.close();
+            } catch (IOException e) {
+                Log.e(this.getClass().getSimpleName(), "Could not close socket");
+            }
+        }
     }
 
-    static class WorkerThread extends Thread {
-
+    static class Worker implements Runnable {
         private final HttpService httpservice;
         private final HttpServerConnection conn;
 
-        public WorkerThread(
+        private AtomicBoolean running;
+
+        public Worker(
                 final HttpService httpservice,
                 final HttpServerConnection conn) {
             super();
             this.httpservice = httpservice;
             this.conn = conn;
+
+            Log.v(this.getClass().getSimpleName(), "Worker thread starting");
         }
 
         public void run() {
+            running = new AtomicBoolean(true);
+
             HttpContext context = new BasicHttpContext(null);
             try {
-                while (!Thread.interrupted() && this.conn.isOpen()) {
+                while (running.get() && this.conn.isOpen()) {
                     this.httpservice.handleRequest(this.conn, context);
                 }
             } catch (ConnectionClosedException ex) {
-                System.err.println("Client closed connection");
+                Log.e(this.getClass().getSimpleName(), "Client closed connection");
             } catch (IOException ex) {
-                System.err.println("I/O error: " + ex.getMessage());
+                Log.e(this.getClass().getSimpleName(), "I/O error: " + ex.getMessage());
             } catch (HttpException ex) {
-                System.err.println("Unrecoverable HTTP protocol violation: " + ex.getMessage());
+                Log.e(this.getClass().getSimpleName(), "Unrecoverable HTTP protocol violation: " + ex.getMessage());
             } finally {
                 try {
                     this.conn.shutdown();
                 } catch (IOException ignore) {
                 }
             }
+        }
+
+        public void stop() {
+            running.set(false);
         }
     }
 }

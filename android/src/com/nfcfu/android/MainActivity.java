@@ -9,12 +9,14 @@ import android.nfc.FormatException;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import com.nfcfu.android.httpserver.HttpServer;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends Activity {
     private NfcAdapter adapter;
@@ -22,13 +24,17 @@ public class MainActivity extends Activity {
     private IntentFilter writeTagFilters[];
 
     private Tag tagToWrite;
+    private AtomicBoolean handlingIntent;
 
     private HttpServer webServer;
+    private boolean webServerRunning;
 
     private TextView step;
     private TextView stepDesc;
     private TextView error;
     private TextView nextSteps;
+    private Button btnStop;
+    private Button btnWrite;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -36,15 +42,23 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         // Find the required UI components
-        Button btnWrite = (Button) findViewById(R.id.writeNfcButton);
+        btnWrite = (Button) findViewById(R.id.writeNfcButton);
+        btnStop = (Button) findViewById(R.id.stopServerButton);
         step = (TextView) findViewById(R.id.step_textView);
         stepDesc = (TextView) findViewById(R.id.stepDesc_textView);
         error = (TextView) findViewById(R.id.error_textView);
         nextSteps = (TextView) findViewById(R.id.nextSteps_textView);
 
         btnWrite.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View v) {
+                boolean result = handlingIntent.compareAndSet(false, true);
+                if(!result) {
+                    // Someone else is already handling an intent, skip our turn
+                    return;
+                }
+
+                Log.v(this.getClass().getSimpleName(), "btnWrite clicked");
+
                 // Clear the error before attempting anything
                 error.setText("");
 
@@ -55,11 +69,14 @@ public class MainActivity extends Activity {
                         NfcHelper.writeIpAddress(tagToWrite, (WifiManager) getSystemService(WIFI_SERVICE));
                         step.setText(R.string.stepTwo);
                         stepDesc.setText(R.string.stepTwoDesc);
-                        v.setVisibility(View.INVISIBLE);
                         nextSteps.setVisibility(View.VISIBLE);
+
+                        btnWrite.setVisibility(View.INVISIBLE);
+                        btnStop.setVisibility(View.VISIBLE);
 
                         if (webServer == null) {
                             webServer = new HttpServer();
+                            webServerRunning = true;
                         }
                     }
                 } catch (IllegalStateException e) {
@@ -68,9 +85,35 @@ public class MainActivity extends Activity {
                     error.setText(R.string.writeFailure);
                 } catch (FormatException e) {
                     error.setText(R.string.writeFailure);
+                } finally {
+                    handlingIntent.set(false);
                 }
             }
         });
+
+        btnStop.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Log.v(this.getClass().getSimpleName(), "btnStop clicked");
+
+                if (webServerRunning) {
+                    // Stop the web server
+                    webServer.stop();
+                    webServerRunning = false;
+                    btnStop.setText(R.string.restartUploadingButton);
+                } else {
+                    // Create a new webserver
+                    try {
+                        webServer = new HttpServer();
+                        webServerRunning = true;
+                        btnStop.setText(R.string.finishedUploadingButton);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        handlingIntent = new AtomicBoolean(false);
 
         // Create adaptor to listen for NFC tag
         adapter = NfcAdapter.getDefaultAdapter(this);
@@ -81,7 +124,9 @@ public class MainActivity extends Activity {
         // Filter intents
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
         tagDetected.addCategory(Intent.CATEGORY_DEFAULT);
-        writeTagFilters = new IntentFilter[]{tagDetected};
+        writeTagFilters = new IntentFilter[]{
+                tagDetected
+        };
     }
 
     @Override
@@ -104,8 +149,8 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onDestroy() {
+        super.onDestroy();
         webServer.stop();
     }
 }

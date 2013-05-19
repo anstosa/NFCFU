@@ -18,5 +18,7 @@
     <string name="notOnWifi">Must be connected to a Wifi network.</string>
 
     <string name="writeTagButton">Program Tag</string>
+    <string name="finishedUploadingButton">Finished Uploading</string>
+    <string name="restartUploadingButton">Upload Again</string>
 
 </resources>
