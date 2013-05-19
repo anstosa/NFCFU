@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import com.nfcfu.android.httpserver.HttpServer;
+import com.nfcfu.android.websocketServer.AndroidWebsocketServer;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,8 +27,8 @@ public class MainActivity extends Activity {
     private Tag tagToWrite;
     private AtomicBoolean handlingIntent;
 
-    private HttpServer webServer;
-    private boolean webServerRunning;
+    private AndroidWebsocketServer server;
+    private boolean serverRunning;
 
     private TextView step;
     private TextView stepDesc;
@@ -74,9 +75,10 @@ public class MainActivity extends Activity {
                         btnWrite.setVisibility(View.INVISIBLE);
                         btnStop.setVisibility(View.VISIBLE);
 
-                        if (webServer == null) {
-                            webServer = new HttpServer();
-                            webServerRunning = true;
+                        if (server == null) {
+                            server = new AndroidWebsocketServer(8081);
+                            server.start();
+                            serverRunning = true;
                         }
                     }
                 } catch (IllegalStateException e) {
@@ -95,20 +97,22 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 Log.v(this.getClass().getSimpleName(), "btnStop clicked");
 
-                if (webServerRunning) {
+                if (serverRunning) {
                     // Stop the web server
-                    webServer.stop();
-                    webServerRunning = false;
+                    try {
+                        server.stop();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    serverRunning = false;
                     btnStop.setText(R.string.restartUploadingButton);
                 } else {
                     // Create a new webserver
-                    try {
-                        webServer = new HttpServer();
-                        webServerRunning = true;
-                        btnStop.setText(R.string.finishedUploadingButton);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    server.start();
+                    serverRunning = true;
+                    btnStop.setText(R.string.finishedUploadingButton);
                 }
             }
         });
@@ -151,6 +155,12 @@ public class MainActivity extends Activity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        webServer.stop();
+        try {
+            server.stop();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

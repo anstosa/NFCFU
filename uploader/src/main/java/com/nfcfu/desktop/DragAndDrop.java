@@ -1,6 +1,7 @@
 package com.nfcfu.desktop;
 
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.java_websocket.drafts.Draft_17;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -11,13 +12,14 @@ import java.awt.dnd.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TooManyListenersException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class DragAndDrop implements Runnable {
-    private String ipAddress = null;
+    private String ipAddress = "172.17.14.16";
     static LinkedBlockingQueue<String> statuses = new LinkedBlockingQueue<String>();
 
     @Override
@@ -42,7 +44,7 @@ public class DragAndDrop implements Runnable {
         while (App.nfcConnected) {
             try {
                 Thread.sleep(500);
-                ipAddress = App.ips.take();
+                //ipAddress = App.ips.take();
                 if (ipAddress != null) {
                     dropZone.setMessage("Drag files here or");
                     break;
@@ -148,7 +150,7 @@ public class DragAndDrop implements Runnable {
                 g2d.drawImage(target, getWidth() / 2 - (target.getWidth() / 2), getHeight() / 2 - (target.getHeight() / 2), this);
 
                 g2d.dispose();
-            } else if (message.getText() == "Drop to upload"){
+            } else if (message.getText() == "Drop to upload") {
                 setMessage("Drag files here or");
             }
 
@@ -165,15 +167,14 @@ public class DragAndDrop implements Runnable {
         }
 
 
-
         protected void importFiles(final List<File> files) {
             if (ipAddress == null) return;
             else setMessage("Uploading...");
             final DefaultHttpClient httpclient = new DefaultHttpClient();
             List<Thread> runners = new ArrayList<Thread>();
 
-            while(ipAddress == null) {
-                try{
+            while (ipAddress == null) {
+                try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -181,9 +182,13 @@ public class DragAndDrop implements Runnable {
             }
 
             for (File file : files) {
-                Thread sendRunner = new Thread(new SendFile(file, ipAddress));
-                runners.add(sendRunner);
-                sendRunner.start();
+                try {
+                    Thread sendRunner = new Thread(new SendFileWebSocket(file, ipAddress, new Draft_17()));
+                    runners.add(sendRunner);
+                    sendRunner.start();
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
             }
 
             for (Thread runner : runners) {
