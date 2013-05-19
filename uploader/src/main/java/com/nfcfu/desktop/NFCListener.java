@@ -98,8 +98,14 @@ public class NFCListener implements SerialPortEventListener {
     public synchronized void serialEvent(SerialPortEvent oEvent) {
         if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
-                String inputLine=input.readLine();
-                System.out.println(inputLine);
+                String message = input.readLine();
+                if (message.startsWith("IP:")) {
+                    String ip = message.replace("IP:","");
+                    System.out.println(ip);
+                    App.ips.offer(ip);
+                } else {
+                    System.out.println("ERROR:" + message);
+                }
             } catch (Exception e) {
                 System.err.println(e.toString());
             }
@@ -112,9 +118,11 @@ public class NFCListener implements SerialPortEventListener {
         main.initialize();
         Thread t=new Thread() {
             public void run() {
-                //the following line will keep this app alive for 1000 seconds,
-                //waiting for events to occur and responding to them (printing incoming messages to console).
-                try {Thread.sleep(1000000);} catch (InterruptedException ie) {}
+                while (App.keepRunning) {
+                    try {
+                        Thread.sleep(1000000);
+                    } catch (InterruptedException ie) {}
+                }
             }
         };
         t.start();
