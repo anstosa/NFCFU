@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.TooManyListenersException;
 
 public class DragAndDrop implements Runnable {
-    private String ipAddress = null;
+    private String ipAddress = "172.17.14.16";
 
     @Override
     public void run() {
@@ -42,7 +42,7 @@ public class DragAndDrop implements Runnable {
         while (App.nfcConnected) {
             try {
                 Thread.sleep(500);
-                ipAddress = App.ips.take();
+                //ipAddress = App.ips.take();
                 if (ipAddress != null) {
                     dropZone.setText("Drag files here or");
                     break;
@@ -80,7 +80,7 @@ public class DragAndDrop implements Runnable {
             message = new JLabel("Waiting for phone...");
             message.setFont(message.getFont().deriveFont(Font.BOLD, 24));
             add(message);
-            browse = new FileSelect();
+            browse = new FileSelect(this);
             browse.setVisible(false);
             add(browse);
         }
