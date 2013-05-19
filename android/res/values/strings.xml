@@ -3,6 +3,17 @@
 
     <string name="app_name">NFCFU</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+
+    <string name="stepOne">Step One:</string>
+    <string name="stepOneDesc">Hold tag on back of device and press button.</string>
+
+    <string name="stepTwo">Step Two:</string>
+    <string name="stepTwoDesc">Place tag on NFC reader connected to computer.</string>
+
+    <string name="writeSuccess">Tag Written!</string>
+    <string name="writeFailure">Tag could not be written. Is it read-only?</string>
+    <string name="tagNotFound">Tag could not be found. Please move it and try again.</string>
+
+    <string name="writeTagButton">Program Tag</string>
 
 </resources>

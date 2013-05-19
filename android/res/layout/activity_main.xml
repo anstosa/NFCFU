@@ -11,20 +11,22 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/hello_world" android:id="@+id/textView"/>
+            android:text="@string/stepOne"
+            android:id="@+id/stepOne_textView" android:textStyle="bold"/>
 
     <TextView
-            android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="92dp"
-            android:text=""/>
+            android:text="@string/stepOneDesc"
+            android:id="@+id/stepOneDesc_textView"
+            android:layout_below="@+id/stepOne_textView" android:layout_alignLeft="@+id/stepOne_textView"/>
+
     <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Write NFC"
-            android:id="@+id/writeNfcButton" android:layout_alignBottom="@+id/textView3"
-            android:layout_alignLeft="@+id/textView"/>
+            android:text="@string/writeTagButton"
+            android:id="@+id/writeNfcButton"
+            android:layout_marginTop="19dp" android:layout_below="@+id/stepOneDesc_textView"
+            android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>
