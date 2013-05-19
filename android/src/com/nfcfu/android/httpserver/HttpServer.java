@@ -1,35 +1,9 @@
 /*
- * $HeadURL: https://svn.apache.org/repos/asf/httpcomponents/httpcore/tags/4.0.1/httpcore/src/examples/org/apache/http/examples/ElementalHttpServer.java $
- * $Revision: 744516 $
- * $Date: 2009-02-14 17:38:14 +0100 (Sat, 14 Feb 2009) $
- *
- * ====================================================================
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
- *
+ * Based on the HTTP Server Example found at:
+ * http://www.docjar.org/html/api/org/apache/http/examples/ElementalHttpServer.java.html
  */
 
-package org.apache.http.examples;
+package com.nfcfu.android.httpserver;
 
 import org.apache.http.*;
 import org.apache.http.entity.StringEntity;
@@ -49,18 +23,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Locale;
 
-/**
- * Basic, yet fully functional and spec compliant, HTTP/1.1 file server.
- * <p/>
- * Please note the purpose of this application is demonstrate the usage of HttpCore APIs.
- * It is NOT intended to demonstrate the most efficient way of building an HTTP file server.
- *
- * @version $Revision: 744516 $
- */
 public class HttpServer {
     Thread requestListener;
 
-    public HttpServer(String directory) throws IOException {
+    public HttpServer() throws IOException {
         Thread t = new RequestListenerThread(8080);
         t.setDaemon(false);
         t.start();
@@ -80,12 +46,25 @@ public class HttpServer {
 
             String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
             if (method.equals("GET")) {
+                // Display an informational message
+
                 response.setStatusCode(HttpStatus.SC_OK);
-                StringEntity body = new StringEntity("This web page is intended only for POST request containing multi-part file uploads");
+                StringEntity body = new StringEntity("This web page is intended only for POST request containing multipart file uploads");
                 response.setEntity(body);
             } else if (method.equals("POST")) {
+                // Check that the request is multipart/form-data and handle
+
+                StringEntity body = null;
+                String contentType = getContentType(request);
+                if (contentType != null && contentType.equals("multipart/form-data")) {
+                    body = new StringEntity("Received a multipart form data");
+
+
+                } else {
+                    body = new StringEntity("Received a POST request!");
+                }
+
                 response.setStatusCode(HttpStatus.SC_OK);
-                StringEntity body = new StringEntity("Received a POST request!");
                 response.setEntity(body);
             } else {
                 throw new MethodNotSupportedException(method + " method not supported");
@@ -96,6 +75,23 @@ public class HttpServer {
                 byte[] entityContent = EntityUtils.toByteArray(entity);
                 System.out.println("Incoming entity content (bytes): " + entityContent.length);
             }
+        }
+
+        private String getContentType(HttpRequest request) {
+            if (request.containsHeader("Content-Type")) {
+                Header[] headers = request.getHeaders("Content-Type");
+
+                if (headers.length == 0) {
+                    return null;
+                }
+
+                if (headers[0].getValue().contains("multipart/form-data")) {
+                    return "multipart/form-data";
+                } else {
+                    return headers[0].getValue();
+                }
+            }
+            return null;
         }
     }
 

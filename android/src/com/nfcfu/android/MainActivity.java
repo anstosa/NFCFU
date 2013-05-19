@@ -13,7 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import org.apache.http.examples.HttpServer;
+import com.nfcfu.android.httpserver.HttpServer;
 
 import java.io.IOException;
 
@@ -58,7 +58,7 @@ public class MainActivity extends Activity {
                         v.setVisibility(View.GONE);
 
                         if(webServer == null) {
-                            webServer = new HttpServer(".");
+                            webServer = new HttpServer();
                         }
                     }
                 } catch (IllegalStateException e) {
