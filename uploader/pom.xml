@@ -37,7 +37,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.nfcfu.desktop.SerialTest</mainClass>
+                            <mainClass>com.nfcfu.desktop.NFCListener</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -52,7 +52,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.nfcfu.desktop.SerialTest</mainClass>
+                            <mainClass>com.nfcfu.desktop.NFCListener</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
