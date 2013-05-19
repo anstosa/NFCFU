@@ -8,8 +8,8 @@ import java.util.Vector;
  * @author Tony Grosinger
  */
 public class MultipartParser {
-    Hashtable<String, String> parameters;
-    byte[] fileBytes;
+    private final Hashtable<String, String> parameters;
+    private byte[] fileBytes;
 
     public MultipartParser(byte[] bytes) throws UnsupportedEncodingException {
         parameters = new Hashtable<String, String>();
@@ -34,9 +34,7 @@ public class MultipartParser {
     }
 
     private Hashtable<String, String> parseMessage(byte[] bytes) throws UnsupportedEncodingException {
-        System.out.println("Starting Parse");
-
-        Vector vFileBytes = new Vector();
+        Vector<Byte> vFileBytes = new Vector<Byte>();
         int paramCount = 0;
 
         String data = new String(bytes, "ISO-8859-1");
@@ -73,25 +71,21 @@ public class MultipartParser {
 
                 // count the lines and the bytes up to this point
                 while (lineCount < 4) {
-                    System.out.println("In the line counter");
                     if ((char) bytes[pos] == '\n') {
                         lineCount++;
                     }
                     pos++;
                 }
 
-                System.out.println("--- POSITION: " + pos + " ---");
-
                 // Grab all the bytes from the current position all the way to right before the last boundary
                 for (int k = pos; k < (bytes.length - boundary.length() - 4); k++) {
-                    vFileBytes.add(new Byte(bytes[k]));
+                    vFileBytes.add(bytes[k]);
                 }
 
                 // Convert the Vector to a byte array
                 fileBytes = new byte[vFileBytes.size()];
                 for (int j = 0; j < fileBytes.length; j++) {
-                    Byte temp = (Byte) vFileBytes.get(j);
-                    fileBytes[j] = temp.byteValue();
+                    fileBytes[j] = vFileBytes.get(j);
                 }
 
                 parameters.put("contentLength", "" + fileBytes.length);

@@ -28,7 +28,7 @@ import java.net.Socket;
 import java.util.Locale;
 
 public class HttpServer {
-    Thread requestListener;
+    private Thread requestListener;
 
     public HttpServer() throws IOException {
         Thread t = new RequestListenerThread(8080);
@@ -71,7 +71,7 @@ public class HttpServer {
                     FileOutputStream output = new FileOutputStream(writeTo);
                     IOUtils.write(parser.getFileBytes(), output);
 
-                    body = new StringEntity(new String(entityContent));
+                    body = new StringEntity("File uploaded");
                 } else {
                     body = new StringEntity("Received a POST request!");
                 }

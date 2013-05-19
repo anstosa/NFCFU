@@ -18,25 +18,22 @@ import java.io.File;
 import java.io.IOException;
 
 public class MainActivity extends Activity {
-    NfcAdapter adapter;
-    PendingIntent pendingIntent;
-    IntentFilter writeTagFilters[];
+    private NfcAdapter adapter;
+    private PendingIntent pendingIntent;
+    private IntentFilter writeTagFilters[];
 
-    Tag tagToWrite;
+    private Tag tagToWrite;
 
-    HttpServer webServer;
+    private HttpServer webServer;
 
-    TextView step;
-    TextView stepDesc;
-    TextView error;
+    private TextView step;
+    private TextView stepDesc;
+    private TextView error;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // Initialize the FileAccessor
-        FileAccessor.getInstance();
 
         // Find the required UI components
         Button btnWrite = (Button) findViewById(R.id.writeNfcButton);
