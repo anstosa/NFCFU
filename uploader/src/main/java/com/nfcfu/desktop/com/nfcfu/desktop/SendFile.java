@@ -14,9 +14,9 @@ public class SendFile implements Runnable {
     private DefaultHttpClient client;
     private String destination;
 
-    public SendFile(File file, DefaultHttpClient client, String ipAddress) {
+    public SendFile(File file, String ipAddress) {
         this.file = file;
-        this.client = client;
+        this.client = new DefaultHttpClient();;
         this.destination = "http://" + ipAddress + ":8080/";
     }
 

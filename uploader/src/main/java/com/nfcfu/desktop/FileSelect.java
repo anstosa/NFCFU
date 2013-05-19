@@ -21,6 +21,7 @@ public class FileSelect extends JPanel implements ActionListener {
 
         //Create a file chooser
         fc = new JFileChooser();
+        fc.setMultiSelectionEnabled(true);
 
         //Create the open button.  We use the image from the JLF
         //Graphics Repository (but we extracted it from the jar).
@@ -39,9 +40,7 @@ public class FileSelect extends JPanel implements ActionListener {
         int returnVal = fc.showOpenDialog(FileSelect.this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
-
-            List<File> files = Arrays.asList(new File[]{file});
+            List<File> files = Arrays.asList(fc.getSelectedFiles());
             parentPane.importFiles(files);
         }
     }

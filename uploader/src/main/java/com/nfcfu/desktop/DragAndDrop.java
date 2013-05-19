@@ -157,7 +157,6 @@ public class DragAndDrop implements Runnable {
         public void importFiles(final List<File> files) {
             if (ipAddress == null) return;
             else setText("Uploading...");
-            final DefaultHttpClient httpclient = new DefaultHttpClient();
             List<Thread> runners = new ArrayList<Thread>();
 
             while(ipAddress == null) {
@@ -169,7 +168,7 @@ public class DragAndDrop implements Runnable {
             }
 
             for (File file : files) {
-                Thread sendRunner = new Thread(new SendFile(file, httpclient, ipAddress));
+                Thread sendRunner = new Thread(new SendFile(file, ipAddress));
                 runners.add(sendRunner);
                 sendRunner.start();
             }
