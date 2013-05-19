@@ -183,7 +183,7 @@ public class DragAndDrop implements Runnable {
 
             for (File file : files) {
                 try {
-                    Thread sendRunner = new Thread(new SendFileWebSocket(file, ipAddress, new Draft_17()));
+                    Thread sendRunner = new Thread(new SendFileWebSocket(file, ipAddress));
                     runners.add(sendRunner);
                     sendRunner.start();
                 } catch (URISyntaxException e) {
@@ -191,6 +191,7 @@ public class DragAndDrop implements Runnable {
                 }
             }
 
+            // Wait for the uploads to finish
             for (Thread runner : runners) {
                 try {
                     runner.join();
@@ -198,6 +199,8 @@ public class DragAndDrop implements Runnable {
                     e.printStackTrace();
                 }
             }
+
+            // Get the status of the upload
             String status = null;
             while (true) {
                 try {
