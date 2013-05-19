@@ -7,7 +7,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.TooManyListenersException;
@@ -24,7 +23,10 @@ public class DragAndDrop {
             public void run() {
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+                } catch (ClassNotFoundException e) {
+                } catch (InstantiationException e) {
+                } catch (IllegalAccessException e) {
+                } catch (UnsupportedLookAndFeelException ex) {
                 }
 
                 JFrame frame = new JFrame("Testing");

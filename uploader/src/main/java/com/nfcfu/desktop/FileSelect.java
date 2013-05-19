@@ -6,13 +6,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
-public class App extends JPanel implements ActionListener {
+public class FileSelect extends JPanel implements ActionListener {
     static private final String newline = "\n";
     JButton openButton, saveButton;
     JTextArea log;
     JFileChooser fc;
 
-    public App() {
+    public FileSelect() {
         super(new BorderLayout());
 
         //Create the log first, because the action listeners
@@ -51,7 +51,7 @@ public class App extends JPanel implements ActionListener {
 
         //Handle open button action.
         if (e.getSource() == openButton) {
-            int returnVal = fc.showOpenDialog(App.this);
+            int returnVal = fc.showOpenDialog(FileSelect.this);
 
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
@@ -64,7 +64,7 @@ public class App extends JPanel implements ActionListener {
 
         //Handle save button action.
         } else if (e.getSource() == saveButton) {
-            int returnVal = fc.showSaveDialog(App.this);
+            int returnVal = fc.showSaveDialog(FileSelect.this);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
                 //This is where a real application would save the file.
@@ -80,7 +80,7 @@ public class App extends JPanel implements ActionListener {
      * Returns an ImageIcon, or null if the path was invalid.
      */
     protected static ImageIcon createImageIcon(String path) {
-        java.net.URL imgURL = App.class.getResource(path);
+        java.net.URL imgURL = FileSelect.class.getResource(path);
         if (imgURL != null) {
             return new ImageIcon(imgURL);
         } else {
@@ -100,7 +100,7 @@ public class App extends JPanel implements ActionListener {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Add content to the window.
-        frame.add(new App());
+        frame.add(new FileSelect());
 
         //Display the window.
         frame.pack();
