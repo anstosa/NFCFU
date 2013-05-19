@@ -1,5 +1,11 @@
 package com.nfcfu.desktop;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -7,6 +13,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.TooManyListenersException;
@@ -54,6 +61,7 @@ public class DragAndDrop {
         public DropPane() {
             try {
                 target = ImageIO.read(this.getClass().getResourceAsStream("/upload.png"));
+                target = resizeImage(target, 263, 200);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -62,7 +70,6 @@ public class DragAndDrop {
             message = new JLabel();
             message.setFont(message.getFont().deriveFont(Font.BOLD, 24));
             add(message);
-
         }
 
         @Override
@@ -117,10 +124,36 @@ public class DragAndDrop {
             }
         }
 
-        protected void importFiles(final List files) {
+        private BufferedImage resizeImage(BufferedImage originalImage, int height, int width) {
+            int type = originalImage.getType();
+            BufferedImage resizedImage = new BufferedImage(width, height, type);
+            Graphics2D g = resizedImage.createGraphics();
+            g.drawImage(originalImage, 0, 0, width, height, null);
+            g.dispose();
+
+            return resizedImage;
+        }
+
+        protected void importFiles(final List<File> files) {
+            final DefaultHttpClient httpclient = new DefaultHttpClient();
+
             Runnable run = new Runnable() {
                 @Override
                 public void run() {
+                    for (File file : files) {
+                        HttpPost method = new HttpPost("http://172.17.14.16:8080/");
+                        MultipartEntity entity = new MultipartEntity();
+                        entity.addPart("file", new FileBody(file));
+                        method.setEntity(entity);
+
+                        try {
+                            HttpResponse response = httpclient.execute(method);
+                            System.out.println(response.getStatusLine());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
                     message.setText("You dropped " + files.size() + " files");
                 }
             };
@@ -170,7 +203,7 @@ public class DragAndDrop {
                 if (dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                     dtde.acceptDrop(dtde.getDropAction());
                     try {
-                        List transferData = (List) transferable.getTransferData(DataFlavor.javaFileListFlavor);
+                        List<File> transferData = (List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
                         if (transferData != null && transferData.size() > 0) {
                             importFiles(transferData);
                             dtde.dropComplete(true);
