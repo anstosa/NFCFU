@@ -53,6 +53,7 @@ void loop(void) {
     if (success)
     {
         // Display some basic information about the card
+        Serial.flush();
         Serial.println("Found an ISO14443A card");
         Serial.print("    UID Length: ");Serial.print(uidLength, DEC);Serial.println(" bytes");
         Serial.print("    UID Value: ");
@@ -112,16 +113,20 @@ void loop(void) {
             }
             Serial.println("-----------------------Decoded IP------------------------");
             Serial.println(ndef.GetIP(sector));
+            Serial.flush();
         }
         else
         {
             Serial.println("Ooops ... this doesn't seem to be a Mifare Classic card!");
         }
     }
+    Serial.flush();
+    delay(5000);
+    Serial.flush();
     // Wait a bit before trying again
-    Serial.println("\nCheck again? [y/n]\n\n");
+    /*Serial.println("\nCheck again? [y/n]\n\n");
     Serial.flush();
     while (!Serial.available());
     while (Serial.available()) Serial.read();
-    Serial.flush();
+    Serial.flush();*/
 }

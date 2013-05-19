@@ -9,7 +9,9 @@ String NDEF::GetIP(uint8_t * payload){
     String ip = "";
     for (int i = 11; i < 11 + payload[3]; i++)
     {
-        if (payload[i] == 0) break;
+        if (payload[i] == 0) {
+            break;
+        }
         ip += DecodeIPByte(payload[i]);
     }
     return ip;
