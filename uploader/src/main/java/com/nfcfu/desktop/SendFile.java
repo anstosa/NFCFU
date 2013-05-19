@@ -1,7 +1,8 @@
-package com.nfcfu.desktop.com.nfcfu.desktop;
+package com.nfcfu.desktop;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -29,8 +30,12 @@ public class SendFile implements Runnable {
 
         try {
             HttpResponse response = client.execute(method);
+            DragAndDrop.statuses.offer("Success!");
             System.out.println(response.getStatusLine());
+        } catch (HttpHostConnectException e) {
+            DragAndDrop.statuses.offer("Cannot find phone...");
         } catch (IOException e) {
+            DragAndDrop.statuses.offer("Failed!");
             e.printStackTrace();
         }
     }

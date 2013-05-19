@@ -1,7 +1,5 @@
 package com.nfcfu.desktop;
 
-import com.nfcfu.desktop.com.nfcfu.desktop.SendFile;
-import org.apache.http.NoHttpResponseException;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import javax.imageio.ImageIO;
@@ -16,9 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TooManyListenersException;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class DragAndDrop implements Runnable {
-    private String ipAddress = "172.17.14.16";
+    private String ipAddress = null;
+    static LinkedBlockingQueue<String> statuses = new LinkedBlockingQueue<String>();
 
     @Override
     public void run() {
@@ -42,9 +42,9 @@ public class DragAndDrop implements Runnable {
         while (App.nfcConnected) {
             try {
                 Thread.sleep(500);
-                //ipAddress = App.ips.take();
+                ipAddress = App.ips.take();
                 if (ipAddress != null) {
-                    dropZone.setText("Drag files here or");
+                    dropZone.setMessage("Drag files here or");
                     break;
                 }
             } catch (InterruptedException e) {
@@ -52,7 +52,7 @@ public class DragAndDrop implements Runnable {
             }
         }
         if (!App.nfcConnected) {
-            dropZone.setText("Please connect NFC reader.");
+            dropZone.setMessage("Please connect NFC reader.");
         }
     }
 
@@ -66,6 +66,7 @@ public class DragAndDrop implements Runnable {
         private BufferedImage target;
 
         private JLabel message;
+        private JLabel statusMessage;
         private FileSelect browse;
 
         public DropPane() {
@@ -80,14 +81,23 @@ public class DragAndDrop implements Runnable {
             message = new JLabel("Waiting for phone...");
             message.setFont(message.getFont().deriveFont(Font.BOLD, 24));
             add(message);
+            statusMessage = new JLabel();
+            statusMessage.setFont(statusMessage.getFont().deriveFont(Font.PLAIN, 14));
+            statusMessage.setVisible(false);
+            add(statusMessage);
             browse = new FileSelect(this);
             browse.setVisible(false);
             add(browse);
         }
 
-        public void setText(String newMessage) {
+        public void setMessage(String newMessage) {
             message.setText(newMessage);
             browse.setVisible(newMessage == "Drag files here or");
+        }
+
+        public void setStatusMessage(String newStatus) {
+            statusMessage.setText(newStatus);
+            statusMessage.setVisible(newStatus.length() > 0);
         }
 
         @Override
@@ -130,7 +140,7 @@ public class DragAndDrop implements Runnable {
             super.paintComponent(g);
             if (ipAddress == null) return;
             if (dragOver) {
-                setText("Drop to upload");
+                setMessage("Drop to upload");
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setColor(new Color(0, 255, 0, 64));
                 g2d.fill(new Rectangle(getWidth(), getHeight()));
@@ -139,7 +149,7 @@ public class DragAndDrop implements Runnable {
 
                 g2d.dispose();
             } else if (message.getText() == "Drop to upload"){
-                setText("Drag files here or");
+                setMessage("Drag files here or");
             }
 
         }
@@ -154,9 +164,12 @@ public class DragAndDrop implements Runnable {
             return resizedImage;
         }
 
-        public void importFiles(final List<File> files) {
+
+
+        protected void importFiles(final List<File> files) {
             if (ipAddress == null) return;
-            else setText("Uploading...");
+            else setMessage("Uploading...");
+            final DefaultHttpClient httpclient = new DefaultHttpClient();
             List<Thread> runners = new ArrayList<Thread>();
 
             while(ipAddress == null) {
@@ -176,6 +189,19 @@ public class DragAndDrop implements Runnable {
             for (Thread runner : runners) {
                 try {
                     runner.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            String status = null;
+            while (true) {
+                try {
+                    Thread.sleep(500);
+                    status = statuses.take();
+                    if (status != null) {
+                        setStatusMessage(status);
+                        break;
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

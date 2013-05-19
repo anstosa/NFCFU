@@ -8,11 +8,11 @@ public class App {
     static Thread nfc, files;
 
     public static void main(String[] args) {
-        //NFCListener t1 = new NFCListener();
+        NFCListener t1 = new NFCListener();
         DragAndDrop t2 = new DragAndDrop();
-        //nfc = new Thread(t1);
+        nfc = new Thread(t1);
         files = new Thread(t2);
-        //nfc.start();
+        nfc.start();
         files.start();
     }
 }
