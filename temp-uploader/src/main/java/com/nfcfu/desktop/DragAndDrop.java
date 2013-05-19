@@ -102,14 +102,15 @@ public class DragAndDrop {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (dragOver) {
+                // TODO: Give visual feedback that it will be uploaded
+                
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setColor(new Color(0, 255, 0, 64));
                 g2d.fill(new Rectangle(getWidth(), getHeight()));
-                if (dragPoint != null && target != null) {
-                    int x = dragPoint.x - 12;
-                    int y = dragPoint.y - 12;
-                    g2d.drawImage(target, x, y, this);
-                }
+
+                g2d.setColor(new Color(0, 0, 255, 100));
+                g2d.fill(new Rectangle(100, 50));
+
                 g2d.dispose();
             }
         }
